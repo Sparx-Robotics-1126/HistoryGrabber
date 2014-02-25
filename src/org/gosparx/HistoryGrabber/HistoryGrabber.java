@@ -15,23 +15,27 @@ public class HistoryGrabber {
 	private static boolean getAll = false;
 	private static final Downloadable[] files = {};
 	private static String ip;
+	private static int matchNumber;
 
 	/**
 	 * @param args[0] - Team Number
+	 * 		  args[1] - Match Number
+	 * 		  args[2] - (optional) "-a" Signals to get all of the files, not just the most recent
 	 */
 	public static void main(String[] args){
-		if(args.length < 1){
-			System.out.println("Invailid usage. You must atleast provide your team number");
+		if(args.length < 2){
+			System.out.println("Invailid usage. You must at least provide your team number and match number.");
 			System.exit(-1);
 		}
 		try{
 			teamNumber = Integer.parseInt(args[0]);
 			ip = getIP(teamNumber);
+			matchNumber = Integer.parseInt(args[1]);
 		}catch(Exception e){
-			System.out.println("Invalid usage. The first argument must be your team number!");
+			System.out.println("Invalid usage. The first argument must be your team number and the second must be the Match number!");
 			System.exit(-1);
 		}
-		if(args.length > 1){
+		if(args.length > 2){
 			if(args[1].equals("-a")){
 				getAll = true;
 			}
@@ -48,7 +52,7 @@ public class HistoryGrabber {
 			URL ftp = new URL("ftp://" + ip + "/" + path);
 			URLConnection ftpCon = ftp.openConnection();
 			BufferedInputStream in = new BufferedInputStream(ftpCon.getInputStream());
-			FileOutputStream out = new FileOutputStream("/data/" +  path);
+			FileOutputStream out = new FileOutputStream("/data/match" + matchNumber + "/" +  path);
 			int i;
 			while((i = in.read())!= -1){
 				out.write(i);
