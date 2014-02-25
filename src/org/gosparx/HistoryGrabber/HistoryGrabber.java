@@ -15,7 +15,6 @@ public class HistoryGrabber {
 	private static boolean getAll = false;
 	private static final Downloadable[] files = {};
 	private static String ip;
-	private static String ftpPath;
 
 	/**
 	 * @param args[0] - Team Number
