@@ -63,7 +63,7 @@ public class HistoryGrabber {
 		try{
 			hg = new HistoryGrabber(downloadables, Integer.parseInt(args[0]), Integer.parseInt(args[1]));
 			if(args.length > 2){
-				if(args[1].equals("-a")){
+				if(args[2].equals("-a")){
 					hg.setGetAll(true);
 				}
 			}
