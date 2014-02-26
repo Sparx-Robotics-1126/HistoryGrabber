@@ -1,7 +1,9 @@
 package org.gosparx.HistoryGrabber;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
@@ -11,11 +13,41 @@ import java.text.DecimalFormat;
  * @author Alex - Team 1126 - Kmodos
  */
 public class HistoryGrabber {
-	private static int teamNumber = 0000;
-	private static boolean getAll = false;
-	private static final Downloadable[] files = {};
-	private static String ip;
-	private static int matchNumber;
+	
+	/**
+	 * The static instance of a HistoryGrabber for use in main();
+	 */
+	public static HistoryGrabber hg;
+	
+	/**
+	 * An array of Downloadables. Edit this to add new Downloadables to retrieve different files.
+	 */
+	private static final Downloadable[] downloadables = {new LogDownloadable()};
+	
+	/**
+	 * The nonstatic classes instance of Downloadables
+	 */
+	private Downloadable[] toDownload;
+	
+	/**
+	 * The IP of the cRIO controller.
+	 */
+	private String ip;
+	
+	/**
+	 * The match number. Data will be stored in /data/match + matchNumber/
+	 */
+	private int matchNumber;
+	
+	/**
+	 * The team number. Used for calculating the cRIOs ip.
+	 */
+	private int teamNumber = 0000;
+	
+	/**
+	 * True if we should get all of the data from the cRIO, false if we should get just the last data.
+	 */
+	private boolean getAll = false;
 
 	/**
 	 * @param args[0] - Team Number
@@ -28,26 +60,67 @@ public class HistoryGrabber {
 			System.exit(-1);
 		}
 		try{
-			teamNumber = Integer.parseInt(args[0]);
-			ip = getIP(teamNumber);
-			matchNumber = Integer.parseInt(args[1]);
+			hg = new HistoryGrabber(downloadables, Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+			if(args.length > 2){
+				if(args[1].equals("-a")){
+					hg.setGetAll(true);
+				}
+			}
+			hg.commenceDownloading();
 		}catch(Exception e){
 			System.out.println("Invalid usage. The first argument must be your team number and the second must be the Match number!");
 			System.exit(-1);
 		}
-		if(args.length > 2){
-			if(args[1].equals("-a")){
-				getAll = true;
-			}
-		}
-		for(Downloadable d: files){
+		
+	}
+	
+	/**
+	 * Creates a new HistoryGrabber
+	 * @param dl - an Array of Downloadables. The HistoryGrabber will getFilePaths for each of the elements
+	 * @param teamNumber - the teams number
+	 * @param matchNumber - the match number
+	 */
+	public HistoryGrabber(Downloadable[] dl, int teamNumber, int matchNumber){
+		this.toDownload = dl;
+		this.teamNumber = teamNumber;
+		this.matchNumber = matchNumber;
+		this.ip = getIP(this.teamNumber);
+		this.getAll = false;
+	}
+	
+	/**
+	 * Returns the cRIO's IP
+	 * @param teamNumber - the team number
+	 * @return the ip of the cRIO
+	 */
+	private String getIP(int teamNumber){
+		return "10." + new DecimalFormat("00.00").format(teamNumber/100.0) + ".2";
+	}
+	
+	/**
+	 * Sets the new value for getAll  
+	 * @param newValue - the new value of getAll
+	 */
+	public void setGetAll(boolean newValue){
+		this.getAll = newValue;
+	}
+	
+	/**
+	 * Loops through toDownloading, getting all of the file paths and then downloading each of them.
+	 */
+	public void commenceDownloading(){
+		for(Downloadable d: toDownload){
 			for(String path: d.getFilePaths(getAll)){
-				downloadFile(path);
+				downloadFiles(path);
 			}
 		}
 	}
 	
-	private static void downloadFile(String path){
+	/**
+	 * Attempts to download the file at path on the cRIO
+	 * @param path - the file path to the file to download on the cRIO
+	 */
+	private void downloadFiles(String path){
 		try {
 			URL ftp = new URL("ftp://" + ip + "/" + path);
 			URLConnection ftpCon = ftp.openConnection();
@@ -65,7 +138,22 @@ public class HistoryGrabber {
 		}
 	}
 	
-	private static String getIP(int teamNumber){
-		return "10." + new DecimalFormat("00.00").format(teamNumber/100.0) + ".2";
+	/**
+	 * Reads the first line form the file at path.
+	 * @param path - the path of the file to read from
+	 * @return the first line of the file at path.
+	 */
+	public String readFromFile(String path){
+		try {
+			URL ftp = new URL("ftp://" + ip + "/" + path);
+			URLConnection ftpCon = ftp.openConnection();
+			BufferedReader in = new BufferedReader(new InputStreamReader(ftpCon.getInputStream()));
+			String toReturn = in.readLine();
+			in.close();
+			return toReturn;
+		} catch (Exception e) {
+			System.out.println("Error reading the file at " + path + ". Error: " + e.getMessage());
+		}
+		return null;
 	}
 }
