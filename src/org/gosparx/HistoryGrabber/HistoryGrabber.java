@@ -2,6 +2,7 @@ package org.gosparx.HistoryGrabber;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -155,5 +156,23 @@ public class HistoryGrabber {
 			System.out.println("Error reading the file at " + path + ". Error: " + e.getMessage());
 		}
 		return null;
+	}
+	
+	/**
+	 * Writes to the file at path
+	 * @param path - the path of the file ot write to
+	 * @param b - the array of bytes to write
+	 * @param offset - the offset to start at
+	 */
+	public void writeToFile(String path, byte[] b, int offset){
+		try {
+			URL ftp = new URL("ftp://" + ip + "/" + path);
+			URLConnection ftpCon = ftp.openConnection();
+			DataOutputStream dos = new DataOutputStream(ftpCon.getOutputStream());
+			dos.write(b, offset, b.length);
+			dos.close();
+		} catch (Exception e) {
+			System.out.println("Error writing to the file at " + path + ". Error: " + e.getMessage());
+		}
 	}
 }
