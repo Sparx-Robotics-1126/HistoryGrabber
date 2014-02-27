@@ -133,7 +133,8 @@ public class HistoryGrabber {
 			}
 			out.close();
 			in.close();
-			System.out.println("The file at " + path + " was download");
+			System.out.println("The file at " + path + " was download, now deleting");
+			deleteFile(path);
 		} catch (Exception e) {
 			System.out.println("Error downloading the file at " + path + ". Error: " + e.getMessage());
 		}
@@ -173,6 +174,22 @@ public class HistoryGrabber {
 			dos.close();
 		} catch (Exception e) {
 			System.out.println("Error writing to the file at " + path + ". Error: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Deletes the file at path.
+	 * @param path - the path to delete the file at.
+	 */
+	private void deleteFile(String path){
+		try{
+			URL ftp = new URL("ftp://" + ip + "/");
+			URLConnection con = ftp.openConnection();
+			DataOutputStream dos = new DataOutputStream(con.getOutputStream());
+			dos.writeBytes("remove " +  "/" + path);
+			dos.close();
+		}catch (Exception e){
+			System.out.println("Error deleting file at " + path + ". Error: " + e.getMessage());
 		}
 	}
 }
