@@ -53,6 +53,16 @@ public class HistoryGrabber {
 	private boolean getAll = false;
 
 	/**
+	 * The total number of files downloaded
+	 */
+	private int total;
+	
+	/**
+	 * The number of files that were sucessfully downloaded
+	 */
+	private int completed;
+	
+	/**
 	 * @param args[0] - Team Number
 	 * 		  args[1] - Match Number
 	 * 		  args[2] - (optional) "-a" Signals to get all of the files, not just the most recent
@@ -99,8 +109,10 @@ public class HistoryGrabber {
 		for(Downloadable d: toDownload){
 			for(String path: d.getFilePaths(getAll)){
 				downloadFile(path);
+				total ++;
 			}
 		}
+		GUI.getInstance().popupBox(completed, total);
 	}
 
 	/**
@@ -126,6 +138,7 @@ public class HistoryGrabber {
 			out.close();
 			in.close();
 			System.out.println("The file at " + path + " was download, now deleting");
+			completed ++;
 			deleteFile(path);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -178,8 +191,8 @@ public class HistoryGrabber {
 		try{
 			Socket socket = new Socket(ip, 21);
 			DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-			dos.write(("USER anonymous\r\n").getBytes());
-			dos.write(("PASS amechler1998@gmail.com \r\n").getBytes());
+			dos.write(("USER \r\n").getBytes());
+			dos.write(("PASS \r\n").getBytes());
 			dos.write(("DELE " + path + "\r\n").getBytes());
 			dos.close();
 			System.out.println("File at " + path + " was deleted.");

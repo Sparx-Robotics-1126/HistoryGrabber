@@ -132,5 +132,9 @@ public class GUI extends JFrame implements ActionListener{
 			HistoryGrabber.hg.commenceDownloading();
 		}
 	}
+	
+	public void popupBox(int completed, int total){
+		JOptionPane.showMessageDialog(frame, completed + " of " + total + " files downloaded sucessfully");
+	}
 
 }
