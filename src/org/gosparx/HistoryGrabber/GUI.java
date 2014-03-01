@@ -98,7 +98,7 @@ public class GUI extends JFrame implements ActionListener{
 		frame.setLayout(new GridLayout(4, 1));
 		frame.setResizable(false);
 		confirm = new JButton("Download Files");
-		teamNumber =  new JTextField(4);
+		teamNumber =  new JTextField("1126" ,4);
 		matchNumber = new JTextField(3);
 		getAll = new JCheckBox();
 		teamLabel = new JLabel("Team Number:", JLabel.CENTER);
