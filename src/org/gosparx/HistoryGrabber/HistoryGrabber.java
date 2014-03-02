@@ -195,6 +195,7 @@ public class HistoryGrabber {
 			dos.write(("PASS \r\n").getBytes());
 			dos.write(("DELE " + path + "\r\n").getBytes());
 			dos.close();
+			socket.close();
 			System.out.println("File at " + path + " was deleted.");
 		}catch (Exception e){
 			System.out.println("Error deleting file at " + path + ". Error: " + e.getMessage());

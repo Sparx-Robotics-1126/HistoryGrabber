@@ -1,18 +1,20 @@
 package org.gosparx.HistoryGrabber;
 
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
 
 import javax.swing.*;
 
 public class GUI extends JFrame implements ActionListener{
-	
+
 	/**
 	 * The Static instance of GUI to support the singleton instance
 	 */
 	private static GUI gui;
-	
+
 	/**
 	 * The UID 
 	 */
@@ -21,65 +23,49 @@ public class GUI extends JFrame implements ActionListener{
 	/**********************************************************************************************************************
 	 *											Components 
 	 **********************************************************************************************************************/
-	
+
 	/**
 	 * The "Download Files" Button 
 	 */
 	private JButton confirm;
-	
+
 	/**
 	 * The Field for the Team number
 	 */
 	private JTextField teamNumber;
-	
+
 	/**
 	 * The Field for the match number
 	 */
 	private JTextField matchNumber;
-	
+
 	/**
 	 * The Checkbox for get all
 	 */
 	private JCheckBox getAll;
-	
+
 	/**
 	 * The JFrame
 	 */
 	private JFrame frame;
-	
-	/**
-	 * The Panel that contains teamNumber and teamLabel
-	 */
-	private JPanel teamPanel;
-	
-	/**
-	 * The Panel that contains matchNumber and matchLabel
-	 */
-	private JPanel matchPanel;
-	
-	/**
-	 * The Panel that contains getAll and getAllLabel
-	 */
-	private JPanel getAllPanel;
-	
+
 	/**
 	 * The label for the team number
 	 */
 	private JLabel teamLabel;
-	
+
 	/**
 	 * The label for the match number 
 	 */
 	private JLabel matchLabel;
-	
+
 	/**
 	 * The label for the get all checkbox
 	 */
 	private JLabel getAllLabel;
-	
 	/**
 	 * Supports the singleton model
-	 * @return an instance of GUI
+	 * @return an instance of GUI 
 	 */
 	public static GUI getInstance(){
 		if(gui == null){
@@ -87,36 +73,71 @@ public class GUI extends JFrame implements ActionListener{
 		}
 		return gui;
 	}
-	
+
 	/**
 	 * Inits and adds all components. Then makes the frame visable
+	 * @throws MalformedURLException 
 	 */
 	private GUI(){
+		System.out.println("Making GUI");
+		System.out.println("Set Icon");
 		frame = new JFrame("cRIO HistoryGrabber");
-		frame.setBounds(0, 0, 300, 200);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(new GridLayout(4, 1));
+		frame.setBounds(0, 0, 200, 1234);
 		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		GridBagLayout gridbag = new GridBagLayout();
+		GridBagConstraints c = new GridBagConstraints();
+		frame.setLayout(gridbag);
 		confirm = new JButton("Download Files");
-		teamNumber =  new JTextField("1126" ,4);
-		matchNumber = new JTextField(3);
+		c.gridx = 0;
+		c.gridy = 4;
+		c.gridheight = 1;
+		c.gridwidth = 3;
+		gridbag.setConstraints(confirm, c);
+		teamNumber = new JTextField("1126" ,10);
+		c.gridx = 1;
+		c.gridy = 1;
+		c.gridheight = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		gridbag.setConstraints(teamNumber, c);
+		matchNumber = new JTextField(10);
+		c.gridx = 1;
+		c.gridy = 2;
+		c.gridheight = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		gridbag.setConstraints(matchNumber, c);
 		getAll = new JCheckBox();
+		c.gridx = 1;
+		c.gridy = 3;
+		c.gridheight = 1;
+		c.gridwidth = 1;
+		gridbag.setConstraints(getAll, c);
 		teamLabel = new JLabel("Team Number:", JLabel.CENTER);
+		c.gridx = 0;
+		c.gridy = 1;
+		c.gridheight = 1;
+		c.gridwidth = 1;
+		gridbag.setConstraints(teamLabel, c);
 		matchLabel = new JLabel("Match Number:", JLabel.CENTER);
+		c.gridx = 0;
+		c.gridy = 2;
+		c.gridheight = 1;
+		c.gridwidth = 1;
+		gridbag.setConstraints(matchLabel, c);
 		getAllLabel = new JLabel("Get All:", JLabel.CENTER);
-		teamPanel = new JPanel(new GridLayout(1, 2));
-		matchPanel = new JPanel(new GridLayout(1, 2));
-		getAllPanel = new JPanel(new GridLayout(1, 2));
-		teamPanel.add(teamLabel);
-		teamPanel.add(teamNumber);
-		matchPanel.add(matchLabel);
-		matchPanel.add(matchNumber);
-		getAllPanel.add(getAllLabel);
-		getAllPanel.add(getAll);
-		frame.add(teamPanel);
-		frame.add(matchPanel);
-		frame.add(getAllPanel);
+		c.gridx = 0;
+		c.gridy = 3;
+		c.gridheight = 1;
+		c.gridwidth = 1;
+		gridbag.setConstraints(getAllLabel, c);
+		frame.add(teamLabel);
+		frame.add(teamNumber);
+		frame.add(matchNumber);
+		frame.add(matchLabel);
+		frame.add(getAllLabel);
+		frame.add(getAll);
 		frame.add(confirm);
+		frame.pack();
 		confirm.addActionListener(this);
 		frame.setVisible(true);
 	}
@@ -132,7 +153,7 @@ public class GUI extends JFrame implements ActionListener{
 			HistoryGrabber.hg.commenceDownloading();
 		}
 	}
-	
+
 	public void popupBox(int completed, int total){
 		JOptionPane.showMessageDialog(frame, completed + " of " + total + " files downloaded sucessfully");
 	}
