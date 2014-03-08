@@ -11,14 +11,16 @@ import javax.swing.*;
 public class GUI extends JFrame implements ActionListener{
 
 	/**
+	 * The serial version uid
+	 */
+	private static final long serialVersionUID = 5264378563412314L;
+
+
+	/**
 	 * The Static instance of GUI to support the singleton instance
 	 */
 	private static GUI gui;
 
-	/**
-	 * The UID 
-	 */
-	private static final long serialVersionUID = 1841730985723945L;
 
 	/**********************************************************************************************************************
 	 *											Components 
@@ -63,6 +65,9 @@ public class GUI extends JFrame implements ActionListener{
 	 * The label for the get all checkbox
 	 */
 	private JLabel getAllLabel;
+	
+	private JProgressBar progress;
+	
 	/**
 	 * Supports the singleton model
 	 * @return an instance of GUI 
@@ -75,12 +80,10 @@ public class GUI extends JFrame implements ActionListener{
 	}
 
 	/**
-	 * Inits and adds all components. Then makes the frame visable
+	 * Inits and adds all components. Then makes the frame visible
 	 * @throws MalformedURLException 
 	 */
 	private GUI(){
-		System.out.println("Making GUI");
-		System.out.println("Set Icon");
 		frame = new JFrame("cRIO HistoryGrabber");
 		frame.setBounds(0, 0, 200, 1234);
 		frame.setResizable(false);
@@ -130,6 +133,16 @@ public class GUI extends JFrame implements ActionListener{
 		c.gridheight = 1;
 		c.gridwidth = 1;
 		gridbag.setConstraints(getAllLabel, c);
+		progress = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+		progress.setStringPainted(true);
+		progress.setIndeterminate(true);
+		progress.setString("Waiting for Input");
+		c.gridx = 0;
+		c.gridy = 5;
+		c.gridheight = 1;
+		c.gridwidth = 3;
+		gridbag.setConstraints(progress, c);
+		frame.add(progress);
 		frame.add(teamLabel);
 		frame.add(teamNumber);
 		frame.add(matchNumber);
@@ -150,12 +163,17 @@ public class GUI extends JFrame implements ActionListener{
 		if(e.getSource().equals(confirm)){
 			HistoryGrabber.hg = new HistoryGrabber(HistoryGrabber.downloadables, Integer.parseInt(teamNumber.getText()), Integer.parseInt(matchNumber.getText()));
 			HistoryGrabber.hg.setGetAll(getAll.isSelected());
-			HistoryGrabber.hg.commenceDownloading();
+			HistoryGrabber.hg.start();
 		}
 	}
 
 	public void popupBox(int completed, int total){
 		JOptionPane.showMessageDialog(frame, completed + " of " + total + " files downloaded sucessfully");
 	}
-
+	
+	public void updateBar(String text, int percent){
+		progress.setIndeterminate(false);
+		progress.setString(text);
+		progress.setValue(percent);
+	}
 }

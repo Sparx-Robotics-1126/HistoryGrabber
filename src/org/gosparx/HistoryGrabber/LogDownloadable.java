@@ -16,6 +16,7 @@ public class LogDownloadable implements Downloadable{
 			toReturn = new String[1];
 			toReturn[0] =  "log" + HistoryGrabber.hg.readFromFile("loggingConfig.txt") + ".txt";
 		}
+		HistoryGrabber.hg.incrementTotal(toReturn.length + 1);
 		return toReturn;
 	}
 }

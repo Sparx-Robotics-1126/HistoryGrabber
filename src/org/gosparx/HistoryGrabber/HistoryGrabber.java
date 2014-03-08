@@ -1,21 +1,18 @@
 package org.gosparx.HistoryGrabber;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
 import java.text.DecimalFormat;
+import org.apache.commons.net.ftp.FTPClient;
 
 /**
  * This is a command line application that will automatically grab various files from the cRIO. You can modify this for your needs.
  * @author Alex - Team 1126 - Kmodos
  */
-public class HistoryGrabber {
+public class HistoryGrabber extends Thread{
 
 	/**
 	 * The static instance of a HistoryGrabber for use in main();
@@ -56,19 +53,23 @@ public class HistoryGrabber {
 	 * The total number of files downloaded
 	 */
 	private int total;
-	
+
 	/**
 	 * The number of files that were sucessfully downloaded
 	 */
 	private int completed;
-	
+
+	private FTPClient ftp;
+
 	/**
-	 * @param args[0] - Team Number
-	 * 		  args[1] - Match Number
-	 * 		  args[2] - (optional) "-a" Signals to get all of the files, not just the most recent
+	 * @param - 
 	 */
 	public static void main(String[] args){
-		GUI.getInstance();
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				GUI.getInstance();
+			}
+		});
 	}
 
 	/**
@@ -82,6 +83,7 @@ public class HistoryGrabber {
 		this.teamNumber = teamNumber;
 		this.matchNumber = matchNumber;
 		this.ip = getIP(this.teamNumber);
+		ftp = new FTPClient();
 		this.getAll = false;
 	}
 
@@ -103,42 +105,20 @@ public class HistoryGrabber {
 	}
 
 	/**
-	 * Loops through toDownloading, getting all of the file paths and then downloading each of them.
-	 */
-	public void commenceDownloading(){
-		for(Downloadable d: toDownload){
-			for(String path: d.getFilePaths(getAll)){
-				downloadFile(path);
-				total ++;
-			}
-		}
-		GUI.getInstance().popupBox(completed, total);
-	}
-
-	/**
 	 * Attempts to download the file at path on the cRIO
 	 * @param path - the file path to the file to download on the cRIO
 	 */
 	private void downloadFile(String path){
 		try {
-			URL ftp = new URL("ftp://" + ip + "/" + path);
-			URLConnection ftpCon = ftp.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(ftpCon.getInputStream()));
-			File outFile = new File(new File(System.getProperty("java.class.path")).getAbsoluteFile().getParentFile().toString() + "/data/match" + matchNumber + "/" + path);
+			File outFile = new File("C:/.HistoryGrabberData/match" + matchNumber + "/" + path);
 			if(!outFile.exists()){
 				outFile.getParentFile().mkdirs();
-				outFile.createNewFile();
 			}
-			BufferedWriter out = new BufferedWriter(new FileWriter(outFile));
-			String s;
-			while((s = in.readLine())!= null){
-				out.write(s);
-				out.newLine();
-			}
-			out.close();
-			in.close();
+			FileOutputStream out = new FileOutputStream(outFile);
+			ftp.retrieveFile("/" + path, out);
 			System.out.println("The file at " + path + " was download, now deleting");
 			completed ++;
+			out.close();
 			deleteFile(path);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -153,52 +133,61 @@ public class HistoryGrabber {
 	 */
 	public String readFromFile(String path){
 		try {
-			URL ftp = new URL("ftp://" + ip + "/" + path);
-			URLConnection ftpCon = ftp.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(ftpCon.getInputStream()));
+			downloadFile(path);
+			FileInputStream fis = new FileInputStream(new File("C:/.HistoryGrabberData/match" + matchNumber + "/" + path));
+			BufferedReader in = new BufferedReader(new InputStreamReader(fis));
 			String toReturn = in.readLine();
 			in.close();
+			fis.close();
 			return toReturn;
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("Error reading the file at " + path + ". Error: " + e.getMessage());
 		}
 		return null;
 	}
 
 	/**
-	 * Writes to the file at path
-	 * @param path - the path of the file ot write to
-	 * @param b - the array of bytes to write
-	 * @param offset - the offset to start at
+	 * Deletes the file at path.
+	 * @param path - the path to delete the file at.
 	 */
-	public void writeToFile(String path, byte[] b, int offset){
-		try {
-			URL ftp = new URL("ftp://" + ip + "/" + path);
-			URLConnection ftpCon = ftp.openConnection();
-			DataOutputStream dos = new DataOutputStream(ftpCon.getOutputStream());
-			dos.write(b, offset, b.length);
-			dos.close();
-		} catch (Exception e) {
-			System.out.println("Error writing to the file at " + path + ". Error: " + e.getMessage());
+	public void deleteFile(String path){
+		try{
+			ftp.dele(path);
+			System.out.println("File at " + path + " was deleted.");
+		}catch (Exception e){
+			e.printStackTrace();
+			System.out.println("Error deleting file at " + path + ". Error: " + e.getMessage());
 		}
 	}
 
 	/**
-	 * Deletes the file at path.
-	 * @param path - the path to delete the file at.
+	 * Connects, and downloads all files.
 	 */
-	private void deleteFile(String path){
-		try{
-			Socket socket = new Socket(ip, 21);
-			DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-			dos.write(("USER \r\n").getBytes());
-			dos.write(("PASS \r\n").getBytes());
-			dos.write(("DELE " + path + "\r\n").getBytes());
-			dos.close();
-			socket.close();
-			System.out.println("File at " + path + " was deleted.");
-		}catch (Exception e){
-			System.out.println("Error deleting file at " + path + ". Error: " + e.getMessage());
+	public void run(){
+		try {
+			ftp.connect(ip, 21);
+			ftp.login("", "");
+			System.out.println("Connected");
+			for(Downloadable d: toDownload){
+				for(String path: d.getFilePaths(getAll)){
+					System.out.println(path);
+					GUI.getInstance().updateBar(completed + 1 + " file(s) of " + total, (int) (((((completed + 1)/1.0)/total)) * 100));
+					downloadFile(path);
+				}
+			}
+			GUI.getInstance().popupBox(completed, total);
+			ftp.disconnect();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Increase the total amount of files by amount amount
+	 * @param amount - the amount ot increment the total by
+	 */
+	public void incrementTotal(int amount){
+		total += amount;
+	}	
 }
